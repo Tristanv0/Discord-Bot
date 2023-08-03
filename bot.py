@@ -45,6 +45,14 @@ async def send_message(message, user_message, is_private):
     try:
         response = responses.handle_response(user_message)
         await message.author.send(response) if is_private else await message.channel.send(response)
+
+        if isinstance(response, discord.Embed):
+            #checks if response is an instance of discord.Embed
+            await message.author.send(response) if is_private else await message.channel.send(embed=response)
+        else: 
+            #if not, then prints as a normal message
+            await message.author.send(response) if is_private else await message.channel.send(response)
+            
     except Exception as e:
         print(e)
 
