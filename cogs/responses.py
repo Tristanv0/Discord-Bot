@@ -20,6 +20,7 @@ class ResponsesCog(commands.Cog):
 
     @app_commands.command(name="help")
     async def help(self, interaction: discord.Interaction):
+        """List of all commands"""
         embed = discord.Embed(colour=discord.Colour.dark_blue(), title="List of commands", description="``roll``   |    Roll a dice!")
         await interaction.response.send_message(embed=embed)
 
