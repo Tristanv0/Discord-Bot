@@ -1,10 +1,21 @@
+import os
+import asyncio
 import discord
-from discord import app_commands
 from discord.ext import commands
-import responses
-TOKEN = "MTEzNTY5MzcyODQ5Mzg3OTMyNg.GXS1RH.AE1Y2Dom38JGrmUdEqXFssxLIrv0t6sYDj9xy8"
-bot = commands.Bot(command_prefix="!", intents = discord.Intents.all())
 
+TOKEN = "MTEzNTY5MzcyODQ5Mzg3OTMyNg.GXS1RH.AE1Y2Dom38JGrmUdEqXFssxLIrv0t6sYDj9xy8"
+bot = commands.Bot(command_prefix="/", intents=discord.Intents.all())
+
+# Asynchronous function to load extensions
+async def load_cogs():
+    try:
+        for file in os.listdir("./cogs"):
+            if file.endswith(".py"):
+                await bot.load_extension(f"cogs.{file[:-3]}")
+    except Exception as e:
+        print(e)
+
+# Asynchronous initialization hook
 @bot.event
 async def on_ready():
     print("Bot is up and ready!")
@@ -14,51 +25,9 @@ async def on_ready():
     except Exception as e:
         print(e)
 
-@bot.event
-async def on_message(message):
-    if message.author == bot.user:
-        return
-        
-    username = str(message.author)
-    user_message = str(message.content)
-    channel = str(message.channel)
+async def main():
+    async with bot:
+        await load_cogs()
+        await bot.start(TOKEN)
 
-    print('f{username} said: "{user_message}" ({channel})')
-        
-    if user_message[0] == "?":
-        user_message = user_message[1:]
-        await send_message(message, user_message, is_private=True)
-    else:
-        await send_message(message, user_message, is_private=False)
-
-@bot.tree.command(name="hello")
-async def hello(interaction: discord.Interaction):
-    await interaction.response.send_message(f"Hey {interaction.user.mention}!.")
-
-@bot.tree.command(name="say")
-@app_commands.describe(thing_to_say = "What should I say?")
-async def say(interaction: discord.Interaction, thing_to_say: str):
-    await interaction.response.send_message(f"{interaction.user.name} said: '{thing_to_say}'")
-
-@bot.tree.command(name="help")
-async def help(interaction: discord.Interaction):
-    embed = discord.Embed(colour=discord.Colour.dark_blue(), title="List of commands", description="``roll``   |    Roll a dice!")
-    await interaction.response.send_message(embed=embed)
-
-async def send_message(message, user_message, is_private):
-    try:
-        response = responses.handle_response(user_message)
-        await message.author.send(response) if is_private else await message.channel.send(response)
-
-        if isinstance(response, discord.Embed):
-            #checks if response is an instance of discord.Embed
-            await message.author.send(response) if is_private else await message.channel.send(embed=response)
-        else: 
-            #if not, then prints as a normal message
-            await message.author.send(response) if is_private else await message.channel.send(response)
-            
-    except Exception as e:
-        print(e)
-
-
-bot.run(TOKEN)
+asyncio.run(main())
