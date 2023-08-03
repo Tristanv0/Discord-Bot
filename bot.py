@@ -40,6 +40,10 @@ async def hello(interaction: discord.Interaction):
 async def say(interaction: discord.Interaction, thing_to_say: str):
     await interaction.response.send_message(f"{interaction.user.name} said: '{thing_to_say}'")
 
+@bot.tree.command(name="help")
+async def help(interaction: discord.Interaction):
+    embed = discord.Embed(colour=discord.Colour.dark_blue(), title="List of commands", description="``roll``   |    Roll a dice!")
+    await interaction.response.send_message(embed=embed)
 
 async def send_message(message, user_message, is_private):
     try:
