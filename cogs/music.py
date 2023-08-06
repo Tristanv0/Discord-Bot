@@ -2,7 +2,7 @@ from ast import alias
 import discord
 from discord.ext import commands
 
-from youtube_dl import YoutubeDL
+from yt_dlp import YoutubeDL
 
 class MusicCog(commands.Cog):
     def __init__(self, bot):
@@ -124,7 +124,7 @@ class MusicCog(commands.Cog):
         for i in range(0, len(self.music_queue)):
             # display a max of 5 songs in the current queue
             if (i > 4): break
-            retval += self.music_queue[i][0]['title'] + "\n"
+            retval += f"{i+1}. " + self.music_queue[i][0]['title'] + "\n"
 
         if retval != "":
             await ctx.send(retval)

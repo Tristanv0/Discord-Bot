@@ -14,7 +14,7 @@ class ResponsesCog(commands.Cog):
     @app_commands.command(name="roll")
     async def roll(self, interaction: discord.Interaction):
         """Roll a dice and get a random number between 1 and 6."""
-        random_number = random.randint(1, 12)
+        random_number = random.randint(2, 12)
         embed = discord.Embed(colour=discord.Colour.dark_red(), title="Dice", description=f"You rolled a {random_number}!")
         await interaction.response.send_message(embed=embed)
 
