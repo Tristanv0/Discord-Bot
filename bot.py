@@ -2,8 +2,8 @@ import os
 import asyncio
 import discord
 from discord.ext import commands
+from config import TOKEN
 
-TOKEN = "MTEzNTY5MzcyODQ5Mzg3OTMyNg.GVL-xI.58JJebAw2WAxuZlekw9kruAfE6x5d8DPM-UKl8"
 bot = commands.Bot(command_prefix="/", intents=discord.Intents.all())
 
 # Asynchronous function to load extensions
