@@ -3,6 +3,7 @@ import discord
 import random
 from discord import app_commands
 from discord.ext import commands
+from deck import *
 
 class GamesCog(commands.Cog):
     def __init__(self, bot):
@@ -18,8 +19,8 @@ class GamesCog(commands.Cog):
         """A classic game of Blackjack"""
         embed_message = discord.Embed(colour=discord.Colour.purple(), 
                                       title=f"{interaction.user.name}'s Blackjack Game", 
-                                      description="**Your Hand**        **Dealer's Hand** 🂡🂱🃁🃑")
-        embed_message.set_footer(text=f"bet: ${bet}")
+                                      description=f"**Your Hand**\n{random.choice(DECK)} {random.choice(DECK)} \n\n**Dealer's Hand**\n{random.choice(DECK)}{FACEDOWN}")
+        embed_message.set_footer(text=f"{interaction.user.name}'s bet: ${bet}")
         await interaction.response.send_message(embed=embed_message)
 
 async def setup(bot):
