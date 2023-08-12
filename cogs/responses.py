@@ -11,12 +11,6 @@ class ResponsesCog(commands.Cog):
     async def on_ready(self):
         print("Responses cog loaded")
 
-    @app_commands.command(name="roll")
-    async def roll(self, interaction: discord.Interaction):
-        """Roll a dice and get a random number between 2 and 12"""
-        random_number = random.randint(2, 12)
-        embed = discord.Embed(colour=discord.Colour.dark_red(), title="Dice", description=f"🎲 You rolled a {random_number}!")
-        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="help")
     async def help(self, interaction: discord.Interaction):
