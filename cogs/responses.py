@@ -20,8 +20,14 @@ class ResponsesCog(commands.Cog):
         embed = discord.Embed(colour=discord.Colour.dark_blue(), title="List of commands", description="``roll``   |    Roll a dice!")
         await interaction.response.send_message(embed=embed)
     
-    @app_commands.command(name = "weather")
-    @app_commands.describe(city = "Enter a city:")
+    @app_commands.command(name="ping")
+    async def gelp(self, interaction: discord.Interaction):
+        """A simple ping command"""
+        embed = discord.Embed(colour=discord.Colour.dark_blue(), title=f":ping_pong: Pong! {round(self.bot.latency*1000)}ms")
+        await interaction.response.send_message(embed=embed)
+    
+    @app_commands.command(name="weather")
+    @app_commands.describe(city="Enter a city:")
     async def weather(self, interaction: discord.Interaction, city:str):
         """Receive current weather conditions for a specific city"""
         url = f"http://api.weatherapi.com/v1/current.json?key={API_KEY}&q={city}"  
@@ -36,9 +42,9 @@ class ResponsesCog(commands.Cog):
         image_url = "http:" +data['current']['condition']['icon']
         embed = discord.Embed(color=discord.Colour.dark_blue(), title = f"Weather in {location}", description=f"The condition is {condition}")
         embed.add_field(name="Temperature", value=f"C: {temp_c} | F: {temp_f}")
-        embed.add_field(name="Wind", value = f"{wind_kph} km/h | {wind_mph} mph")
-        embed.add_field(name="Humidity", value = f"{humidity}%")
-        embed.set_thumbnail(url = image_url)
+        embed.add_field(name="Wind", value=f"{wind_kph} km/h | {wind_mph} mph")
+        embed.add_field(name="Humidity", value=f"{humidity}%")
+        embed.set_thumbnail(url=image_url)
         await interaction.response.send_message(embed=embed)
 async def setup(bot):
     await bot.add_cog(ResponsesCog(bot))
