@@ -23,7 +23,7 @@ class ResponsesCog(commands.Cog):
     @app_commands.command(name = "weather")
     @app_commands.describe(city = "Enter a city:")
     async def weather(self, interaction: discord.Interaction, city:str):
-
+        """Receive current weather conditions for a specific city"""
         url = f"http://api.weatherapi.com/v1/current.json?key={API_KEY}&q={city}"  
         data = requests.get(url).json() 
         location = data['location']['name']
