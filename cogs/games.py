@@ -12,11 +12,31 @@ class GamesCog(commands.Cog):
     async def on_ready(self):
         print("Games cog loaded")
     
+    @app_commands.command(name="8ball")
+    @app_commands.describe(question="Ask me a question")
+    async def eight_ball(self, intercation: discord.Interaction, question:str):
+        """Ask the magic 8ball"""
+        choice = random.choice(["It is certain", "It is decidedly so", "Without a doubt", "Yes definitely", "You may rely on it", "As I see yes", "Most likely", "Outlook good", 
+                                "Yes", "Signs point to yes", "Reply Hazy, try again", "Ask again later", "Better not tell you now", "Cannot predict now", "Concentrate and ask again", 
+                                "Don't count on it", "My reply is no", "My sources say no", "Outlook not so good", "Very doubtful"])
+        embed = discord.Embed(colour=discord.Colour.dark_grey())
+        embed.add_field(name=f" {intercation.user.name}: {question}", value = "", inline=False)
+        embed.add_field(name = "", value = "", inline=False)
+        embed.add_field(name=f":8ball: {choice}.", value = "", inline=False)
+        await intercation.response.send_message(embed=embed)
+
+    @app_commands.command(name="coinflip")
+    async def coinflip(self, interaction: discord.Interaction):
+        """Flip a coin"""
+        flip = random.choice(["Heads", "Tails"])
+        embed = discord.Embed(colour=discord.Colour.dark_gold(), description=f":coin: {flip}!")
+        await interaction.response.send_message(embed=embed)
+
     @app_commands.command(name="roll")
     async def roll(self, interaction: discord.Interaction):
         """Roll a dice and get a random number between 2 and 12"""
         random_number = random.randint(2, 12)
-        embed = discord.Embed(colour=discord.Colour.dark_red(), title="Dice", description=f"🎲 You rolled a {random_number}!")
+        embed = discord.Embed(colour=discord.Colour.red(), description=f"🎲 You rolled a **{random_number}**!")
         await interaction.response.send_message(embed=embed)
     
     
