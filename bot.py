@@ -2,14 +2,9 @@ import os
 import asyncio
 import discord
 from discord.ext import commands
-from economy import Economy
 from config import TOKEN
 
 bot = commands.Bot(command_prefix="/", intents=discord.Intents.all())
-
-#Create an instance of Economy
-database_path = 'economy_database.db' 
-economy_system = Economy(database_path)
 
 # Asynchronous function to load extensions
 async def load_cogs():
