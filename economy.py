@@ -1,14 +1,4 @@
 import sqlite3
-import os
-
-# Get the directory of the current script
-script_directory = os.path.dirname(os.path.abspath(__file__))
-
-# Specify the filename of your SQLite database
-database_filename = 'economy_database.db'  # Adjust this to your actual filename
-
-# Combine the script directory with the database filename
-database_path = os.path.join(script_directory, database_filename)
 
 class Economy:
     def __init__(self, database_path):
