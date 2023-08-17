@@ -2,7 +2,7 @@ import sqlite3
 
 class Economy:
     def __init__(self, database_path):
-        # Connecting to database
+        # Connecting to the database
         self.conn = sqlite3.connect(database_path)
         self.c = self.conn.cursor()
 
@@ -10,6 +10,7 @@ class Economy:
         self.c.execute('''
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY,
+                    guild TEXT,
                     username TEXT,
                     balance REAL,
                     bank REAL
@@ -17,29 +18,55 @@ class Economy:
             ''')
         self.conn.commit()
 
-        # Insert user data
-    def insert_user(self, username, balance, bank):
-        self.c.execute('INSERT INTO users (username, balance, bank) VALUES (?, ?, ?)', (username, balance, bank))  # Fixed typo 'NSERT'
+    def insert_user(self, guild, username, balance, bank):
+        self.c.execute('INSERT INTO users (guild, username, balance, bank) VALUES (?, ?, ?, ?)', (guild, username, balance, bank))
         self.conn.commit()
 
-        # Get user balance
-    def get_user_balance(self, username):
-        self.c.execute('SELECT balance FROM users WHERE username = ?', (username,))
-        balance = self.c.fetchone()
-        if balance:
-            return balance[0]
-        else:
+    def get_user_balance(self, guild, username):
+        try:
+            self.c.execute('SELECT balance FROM users WHERE guild = ? AND username = ?', (guild, username))
+            balance = self.c.fetchone()
+            if balance:
+                return balance[0]
+            else:
+                return None
+        except sqlite3.Error as e:
+            print("Error retrieving user balance:", e)
             return None
 
-        # Get user bank balance
-    def get_user_bank(self, username):
-        self.c.execute('SELECT bank FROM users WHERE username = ?', (username,))
+    #placing bet
+    def update_user_balance(self, guild, username, amount):
+        #amount = amount to subtract by
+        self.c.execute('SELECT balance FROM users WHERE guild = ? AND username = ?', (guild, username))
+        balance = self.c.fetchone()
+
+        if balance:
+            new_balance = balance[0] - amount
+            self.c.execute('UPDATE users SET balance = ? WHERE guild = ? AND username = ?', (new_balance, guild, username))
+            self.conn.commit()
+        else:
+            print("User not found in the database.")
+
+    #update user balance according to winning or work pay
+    def user_winning(self, guild, username, amount):
+        #amount = amount to add by
+        self.c.execute('SELECT balance FROM users WHERE guild = ? AND username = ?', (guild, username))
+        balance = self.c.fetchone()
+        
+        if balance:
+            new_balance = balance[0] + amount
+            self.c.execute('UPDATE users SET balance = ? WHERE guild = ? AND username = ?', (new_balance, guild, username))
+            self.conn.commit()
+        else:
+            print("User not found in the database.")
+        
+    def get_user_bank(self, guild, username):
+        self.c.execute('SELECT bank FROM users WHERE guild = ? AND username = ?', (guild, username))
         bank = self.c.fetchone()
         if bank:
             return bank[0]
         else:
             return None
 
-        # Close the database connection (ideally, this should be handled in your bot's shutdown process)
     def close_connection(self):    
         self.conn.close()
