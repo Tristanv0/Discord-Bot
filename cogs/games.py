@@ -228,11 +228,21 @@ class GamesCog(commands.Cog):
                     player_total = sum(player_card_values)
                     dealer_total = sum(dealer_card_values)
                     
-                    while dealer_total < 17:
-                        card = random.choice(list(DECK.keys()))
+                    while dealer_total < 18 and dealer_soft == True: #continously go through this while loop until dealer has > 17.
+                        card = random.choice(list(DECK.keys()))      #if dealer gets soft 17, must take card.
+                        card_value = DECK[card]                         
+                        dealer_cards.append(card)
+                        dealer_total += card_value
+                        if dealer_total > 21:                        #if dealer gets higher than 21 while ace is 11, ace now valued at 1
+                            dealer_soft = False                      #goes into the next while loop where dealer_soft is False   
+                            dealer_total -= 10                       #e.g. Ace and 3, 9 = 11+3+9= 23, 23-10 = 13
+                    
+                    while dealer_total < 17 and dealer_soft == False: #13 < 17 & dealer_soft = False
+                        card = random.choice(list(DECK.keys()))       #13 + 5 = 18, exit while loop  
                         card_value = DECK[card]
                         dealer_cards.append(card)
                         dealer_total += card_value
+
                     dealer_cards.remove('<:backside:1138692953141948476>')
                     
                     
@@ -245,7 +255,7 @@ class GamesCog(commands.Cog):
                         self.economy_system.user_winning(guild_id, player, winning)
                         await interaction.response.edit_message(embed=embed_message, view=None)
 
-                    elif player_total > dealer_total:
+                    elif player_total > dealer_total:   
                         embed_message = discord.Embed(colour=discord.Colour.green(), 
                                         title=f"{player}'s Blackjack Game", 
                                         description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total}\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards)}\nDealer's total: {dealer_total}\n\n **Congrats!** You beat the dealer!")
