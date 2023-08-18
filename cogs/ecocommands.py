@@ -26,10 +26,12 @@ class EconomyCog(commands.Cog):
         
         if not user:
             user = interaction.user.name
+            avatar = interaction.user.display_avatar
         else:
+            avatar = user.display_avatar
             user = user.name
+            
 
-        avatar = interaction.user.avatar
         balance = self.economy_system.get_user_balance(guild, user)
         bank = self.economy_system.get_user_bank(guild, user)
         embed = discord.Embed(colour=discord.Colour.yellow(),
