@@ -18,12 +18,17 @@ class EconomyCog(commands.Cog):
         print("Economy cog loaded")
         
     @app_commands.command(name='bal')
-    @app_commands.describe(username='Enter the username')
+    @app_commands.describe(user='Enter the username')
     @app_commands.autocomplete()
-    async def bal(self, interaction: discord.Interaction, username:str):
+    async def bal(self, interaction: discord.Interaction, user: discord.Member = None):
         """Check the balance of anyone in the server"""
         guild = interaction.user.guild.id
-        user = interaction.user.name
+        
+        if not user:
+            user = interaction.user.name
+        else:
+            user = user.name
+
         avatar = interaction.user.avatar
         balance = self.economy_system.get_user_balance(guild, user)
         bank = self.economy_system.get_user_bank(guild, user)

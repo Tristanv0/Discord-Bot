@@ -24,7 +24,7 @@ class ResponsesCog(commands.Cog):
         await interaction.response.send_message(embed=embed)
     
     @app_commands.command(name="ping")
-    async def help(self, interaction: discord.Interaction):
+    async def ping(self, interaction: discord.Interaction):
         """A simple ping command"""
         embed = discord.Embed(colour=discord.Colour.brand_green(), title=f":ping_pong: Pong! {round(self.bot.latency*1000)}ms")
         await interaction.response.send_message(embed=embed)
