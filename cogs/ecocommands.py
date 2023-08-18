@@ -23,20 +23,16 @@ class EconomyCog(commands.Cog):
     async def bal(self, interaction: discord.Interaction, user: discord.Member = None):
         """Check the balance of anyone in the server"""
         guild = interaction.user.guild.id
-        
         if not user:
             user = interaction.user.name
             avatar = interaction.user.display_avatar
         else:
             avatar = user.display_avatar
-            user = user.name
-            
-
+            user = user.name 
         balance = self.economy_system.get_user_balance(guild, user)
         bank = self.economy_system.get_user_bank(guild, user)
-        embed = discord.Embed(colour=discord.Colour.yellow(),
-                                    title=f"{user}'s Balance")
-        embed.set_thumbnail(url=avatar)
+        embed = discord.Embed(colour=discord.Colour.yellow())
+        embed.set_author(name=f"{user}'s Balance", icon_url=avatar)
         if balance is not None:
             embed.add_field(name=f"Cash", value=f"${balance}", inline=True)
             embed.add_field(name=f"Bank", value=f"${bank}", inline=True)
