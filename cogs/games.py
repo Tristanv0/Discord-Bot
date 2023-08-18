@@ -1,9 +1,11 @@
 import discord
+import time
 import random
 from discord import app_commands
 from discord.ext import commands
 from deck import *
 from economy import Economy
+
 
 #Creates an instance of Economy
 database_path = 'economy_database.db' 
@@ -63,6 +65,11 @@ class GamesCog(commands.Cog):
             embed.add_field(name='', value="There is a minimum bet of ``$10``", inline=False)
             await interaction.response.send_message(embed=embed)
         
+        elif (int(bet) % 5) != 0:
+            embed = discord.Embed(colour=discord.Colour.red())
+            embed.add_field(name='', value="Your wager needs to be in increments of $5! Enjoy betting options of ``$10``, ``$15``, ``$20``, and so on!")
+            await interaction.response.send_message(embed=embed)
+            
         elif self.economy_system.get_user_balance(guild_id, player) < int(bet):
             embed = discord.Embed(colour=discord.Colour.red())
             embed.add_field(name='', value=f'You cannot afford to bet ``${bet}``', inline=False)
@@ -79,8 +86,6 @@ class GamesCog(commands.Cog):
             card = ''
             card_value = 0
             player_soft = False
-            dealer_soft = False
-            
             
             for i in range(2):
                 card = random.choice(list(DECK.keys()))
@@ -95,40 +100,14 @@ class GamesCog(commands.Cog):
                 dealer_total += card_value
             dealer_cards.append(FACEDOWN)
             
-            
-            #checking for aces
-            if 1 in player_card_values:
-                ace_index = player_card_values.index(1)
-                player_card_values[ace_index] += 10
-                player_total += 10
-                player_soft = True
-                
-            if 1 in dealer_card_values:
-                ace_index = dealer_card_values.index(1)
-                dealer_card_values[ace_index] += 10
-                dealer_total += 10
-                dealer_soft = True
-
-            #checking for blackjack
-            if player_total == 21 and dealer_total != 21:
-                dealer_cards.remove(2)
-                embed_message = discord.Embed(colour=discord.Colour.green(), 
-                        title=f"{player}'s Blackjack Game", 
-                        description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour hand: Blackjack\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards)}\nDealer's total: {dealer_total}\n\n **BLACKJACK!!** Nice job!")
-                embed_message.set_footer(text=f"{player} won: ${int(bet)*2.5}")
-                winning = int(bet)*2.5
-                economy_system.user_winning(guild_id, player, winning)
-                await interaction.response.send_message(embed=embed_message, view=None)
-            
-            if player_total != 21 and dealer_total == 21:
-                dealer_cards.remove(2)
-                embed_message = discord.Embed(colour=discord.Colour.red(), 
-                        title=f"{player}'s Blackjack Game", 
-                        description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour hand: {player_total}\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards)}\nDealer's hand: Blackjack\n\n Dealer got **Blackjack**. Better luck next time")
-                embed_message.set_footer(text=f"{player} lost: ${int(bet)}")
-                await interaction.response.send_message(embed=embed_message, view=None)
-                
-            #Creating and adding buttons accordingly
+            yes = discord.ui.Button(
+                label='Yes',
+                style= discord.ButtonStyle.green
+            )
+            no = discord.ui.Button(
+                label='No',
+                style=discord.ButtonStyle.red
+            )
             hit = discord.ui.Button(
                 label='Hit',
                 style= discord.ButtonStyle.green
@@ -146,13 +125,149 @@ class GamesCog(commands.Cog):
                 style=discord.ButtonStyle.grey
             )
             view = discord.ui.View()
-            view.add_item(hit)
-            view.add_item(stand)
-            if self.economy_system.get_user_balance(guild_id, player) >= int(bet):
-                view.add_item(doubledown)
-            if player_card_values[0] == player_card_values[1]:
-                view.add_item(split)
+            gamebutton = discord.ui.View()
+            
+            #checking for aces
+            if 1 in player_card_values:
+                ace_index = player_card_values.index(1)
+                player_card_values[ace_index] += 10
+                player_total += 10
+                player_soft = True
                 
+            if 1 in dealer_card_values:
+                ace_index = dealer_card_values.index(1)
+                dealer_card_values[ace_index] += 10
+                dealer_total += 10
+
+            if player_total == 21:
+                if dealer_total == 21:
+                    embed_message = discord.Embed(colour=discord.Colour.orange(), 
+                            title=f"{player}'s Blackjack Game", 
+                            description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour hand: Blackjack\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards[0:2])}\nDealer's hand: Blackjack\n\n You and the dealer got Blackjack. Its a push")
+                    embed_message.set_footer(text=f"{player} won: ${int(bet)}")
+                    winning = int(bet)
+                    economy_system.user_winning(guild_id, player, winning)
+                    await interaction.response.send_message(embed=embed_message, view=None) 
+                else:
+                    del dealer_cards[-1]
+                    embed_message = discord.Embed(colour=discord.Colour.green(), 
+                            title=f"{player}'s Blackjack Game", 
+                            description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour hand: Blackjack\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards)}\nDealer's total: {dealer_total}\n\n **BLACKJACK!!** Nice job!")
+                    embed_message.set_footer(text=f"{player} won: ${int(bet)*2.5}")
+                    winning = int(bet)*2.5
+                    economy_system.user_winning(guild_id, player, winning)
+                    await interaction.response.send_message(embed=embed_message, view=None)
+                
+            #offer insurance if dealer's first card is an ace  
+            if dealer_card_values[0] == 11:
+                if player_soft:
+                    embed_message = discord.Embed(colour=discord.Colour.purple(),
+                                                title=f"{player}'s Blackjack Game\nInsurance?",
+                                                description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total-10}/{player_total}\n\n**Dealer's Hand**\n{dealer_cards[0]}{dealer_cards[2]}\nDealer's up card: {dealer_card_values[0]}\n\n")
+                    embed_message.set_footer(text=f"{player}'s bet: ${int(bet)}")
+                else:
+                    embed_message = discord.Embed(colour=discord.Colour.purple(),
+                                                title=f"{player}'s Blackjack Game\nInsurance?",
+                                                description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total}\n\n**Dealer's Hand**\n{dealer_cards[0]}{dealer_cards[2]}\nDealer's up card: {dealer_card_values[0]}\n\n")
+                    embed_message.set_footer(text=f"{player}'s bet: ${int(bet)}")
+                view.add_item(yes)
+                view.add_item(no)
+                await interaction.response.send_message(embed=embed_message, view=view)       
+            
+            if dealer_card_values[0] != 11 and dealer_total == 21:
+                del dealer_cards[-1]
+                embed_message = discord.Embed(colour=discord.Colour.red(), 
+                title=f"{player}'s Blackjack Game", 
+                description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour hand: {player_total-10}/{player_total}\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards)}\nDealer's hand: Blackjack\n\n Dealer got **Blackjack**.")
+                embed_message.set_footer(text=f"{player} lost: ${bet}")
+                
+                
+            async def yes_callback(interaction:discord.Interaction):
+                if interaction.user.name == player:
+                    insurance = int(bet) / 2
+                    economy_system.update_user_balance(guild_id, player, insurance)
+                    if dealer_total == 21:
+                        winning = insurance*3
+                        economy_system.user_winning(guild_id, player, winning)
+                        del dealer_cards[-1]
+                        if player_soft:
+                            embed_message = discord.Embed(colour=discord.Colour.green(), 
+                            title=f"{player}'s Blackjack Game", 
+                            description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour hand: {player_total-10}/{player_total}\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards)}\nDealer's hand: Blackjack\n\n Dealer got **Blackjack**.")
+                            embed_message.set_footer(text=f"{player} won: ${winning} (Insurance)")
+                        else:
+                            embed_message = discord.Embed(colour=discord.Colour.green(), 
+                            title=f"{player}'s Blackjack Game", 
+                            description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour hand: {player_total}\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards)}\nDealer's hand: Blackjack\n\n Dealer got **Blackjack**.")
+                            embed_message.set_footer(text=f"{player} won: ${winning} (Insurance)")
+                        await interaction.response.edit_message(embed=embed_message, view=None) 
+                    else:
+                        if player_soft:
+                            embed_message = discord.Embed(colour=discord.Colour.purple(), 
+                                                title=f"{player}'s Blackjack Game\nDealer doesn't have Blackjack.", 
+                                                description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total-10}/{player_total}\n\n**Dealer's Hand**\n{dealer_cards[0]}{dealer_cards[2]}\nDealer's up card: {dealer_card_values[0]}\n\n")
+                            embed_message.set_footer(text=f"{player}'s bet: ${int(bet)}")
+                        else:
+                            embed_message = discord.Embed(colour=discord.Colour.purple(), 
+                                                title=f"{player}'s Blackjack Game\nDealer doesn't have Blackjack.", 
+                                                description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total}\n\n**Dealer's Hand**\n{dealer_cards[0]}{dealer_cards[2]}\nDealer's up card: {dealer_card_values[0]}\n\n")
+                            embed_message.set_footer(text=f"{player}'s bet: ${int(bet)}")
+                        gamebutton = discord.ui.View()
+                        gamebutton.add_item(hit)
+                        gamebutton.add_item(stand)
+                        gamebutton.add_item(doubledown)
+                        await interaction.response.edit_message(embed=embed_message, view=gamebutton)
+
+            async def no_callback(interaction:discord.Interaction):
+                if interaction.user.name == player:
+                    if dealer_total == 21:
+                        del dealer_cards[-1]
+                        if player_soft:
+                            embed_message = discord.Embed(colour=discord.Colour.red(), 
+                            title=f"{player}'s Blackjack Game", 
+                            description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour hand: {player_total-10}/{player_total}\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards)}\nDealer's hand: Blackjack\n\n Dealer got **Blackjack**.")
+                            embed_message.set_footer(text=f"{player} lost: ${bet}")
+                        else:
+                            embed_message = discord.Embed(colour=discord.Colour.red(), 
+                            title=f"{player}'s Blackjack Game", 
+                            description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour hand: {player_total}\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards)}\nDealer's hand: Blackjack\n\n Dealer got **Blackjack**.")
+                            embed_message.set_footer(text=f"{player} lost: ${bet}")
+                        await interaction.response.edit_message(embed=embed_message, view=None)
+                    else:
+                        if player_soft:
+                            embed_message = discord.Embed(colour=discord.Colour.purple(), 
+                                                title=f"{player}'s Blackjack Game\nDealer doesn't have Blackjack.", 
+                                                description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total-10}/{player_total}\n\n**Dealer's Hand**\n{dealer_cards[0]}{dealer_cards[2]}\nDealer's up card: {dealer_card_values[0]}\n\n")
+                            embed_message.set_footer(text=f"{player}'s bet: ${int(bet)}")
+                        else:
+                            embed_message = discord.Embed(colour=discord.Colour.purple(), 
+                                                title=f"{player}'s Blackjack Game\nDealer doesn't have Blackjack.", 
+                                                description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total}\n\n**Dealer's Hand**\n{dealer_cards[0]}{dealer_cards[2]}\nDealer's up card: {dealer_card_values[0]}\n\n")
+                            embed_message.set_footer(text=f"{player}'s bet: ${int(bet)}") 
+                                                       
+                        gamebutton = discord.ui.View()
+                        gamebutton.add_item(hit)
+                        gamebutton.add_item(stand)
+                        gamebutton.add_item(doubledown)
+                        await interaction.response.edit_message(embed=embed_message, view=gamebutton)
+                        
+            if player_soft is False:
+                embed_message = discord.Embed(colour=discord.Colour.purple(), 
+                                            title=f"{player}'s Blackjack Game", 
+                                            description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total}\n\n**Dealer's Hand**\n{dealer_cards[0]}{dealer_cards[2]}\nDealer's up card: {dealer_card_values[0]}\n\n")
+                embed_message.set_footer(text=f"{player}'s bet: ${int(bet)}")
+            else: 
+                embed_message = discord.Embed(colour=discord.Colour.purple(), 
+                                            title=f"{player}'s Blackjack Game", 
+                                            description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total-10}/{player_total}\n\n**Dealer's Hand**\n{dealer_cards[0]}{dealer_cards[2]}\nDealer's up card: {dealer_card_values[0]}\n\n")
+                embed_message.set_footer(text=f"{player}'s bet: ${int(bet)}")
+
+            gamebutton.add_item(hit)
+            gamebutton.add_item(stand)
+            if self.economy_system.get_user_balance(guild_id, player) >= int(bet):
+                gamebutton.add_item(doubledown)
+            if player_card_values[0] == player_card_values[1]:
+                gamebutton.add_item(split)
             
             if player_soft is False:
                 embed_message = discord.Embed(colour=discord.Colour.purple(), 
@@ -165,9 +280,6 @@ class GamesCog(commands.Cog):
                                             description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total-10}/{player_total}\n\n**Dealer's Hand**\n{dealer_cards[0]}{dealer_cards[2]}\nDealer's up card: {dealer_card_values[0]}\n\n")
                 embed_message.set_footer(text=f"{player}'s bet: ${int(bet)}")
                 
-                
-                
-        
             async def hit_callback(interaction:discord.Interaction):
                 if interaction.user.name == player:
                     if 11 in player_card_values:
@@ -179,6 +291,7 @@ class GamesCog(commands.Cog):
                     if (card_value == 1) and (1 not in player_card_values) and (sum(player_card_values) <= 10): #e.g. 5, 5, and pulls an ace
                         card_value += 10    #card_value should have value of 11
                         player_soft = True  #player has soft 20
+                            
                     player_card_values.append(card_value)      #[5, 5, 11]
                     player_cards.append(card)
                     player_total = 0
@@ -191,43 +304,49 @@ class GamesCog(commands.Cog):
                         await interaction.response.edit_message(embed=embed_message, view=None)
                     
                     elif (player_total >= 22) and (player_soft == True): #soft value above 21, subtract 10 and that becomes hard value
-                        player_soft = False
+                        ace_index = player_card_values.index(11)
+                        player_card_values[ace_index] -= 10
                         player_total -= 10
+                        player_soft = False
                         embed_message = discord.Embed(colour=discord.Colour.purple(), 
                                             title=f"{player}'s Blackjack Game", 
                                             description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total}\n\n**Dealer's Hand**\n{dealer_cards[0]}{dealer_cards[2]}\nDealer's up card: {dealer_card_values[0]}\n\n")
                         embed_message.set_footer(text=f"{player}'s bet: ${int(bet)}")
-                        view.remove_item(doubledown)
-                        view.remove_item(split)
-                        await interaction.response.edit_message(embed=embed_message, view=view)
+                        gamebutton.remove_item(doubledown)
+                        gamebutton.remove_item(split)
+                        await interaction.response.edit_message(embed=embed_message, view=gamebutton)
                         
                     elif (player_total < 21) and (player_soft == True):
                         embed_message = discord.Embed(colour=discord.Colour.purple(), 
                                             title=f"{player}'s Blackjack Game", 
                                             description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total-10}/{player_total}\n\n**Dealer's Hand**\n{dealer_cards[0]}{dealer_cards[2]}\nDealer's up card: {dealer_card_values[0]}\n\n")
                         embed_message.set_footer(text=f"{player}'s bet: ${int(bet)}")
-                        view.remove_item(doubledown)
-                        view.remove_item(split)
-                        await interaction.response.edit_message(embed=embed_message, view=view)
-                        
+                        gamebutton.remove_item(doubledown)
+                        gamebutton.remove_item(split)
+                        await interaction.response.edit_message(embed=embed_message, view=gamebutton)
+
                     else:
                         embed_message = discord.Embed(colour=discord.Colour.purple(), 
                                             title=f"{player}'s Blackjack Game", 
                                             description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total}\n\n**Dealer's Hand**\n{dealer_cards[0]}{dealer_cards[2]}\nDealer's up card: {dealer_card_values[0]}\n\n")
                         embed_message.set_footer(text=f"{player}'s bet: ${int(bet)}")
-                        view.remove_item(doubledown)
+                        gamebutton.remove_item(doubledown)
                         if player_card_values[0] == player_card_values[1]:
-                            view.remove_item(split)
-                        await interaction.response.edit_message(embed=embed_message, view=view)
+                            gamebutton.remove_item(split)
+                        await interaction.response.edit_message(embed=embed_message, view=gamebutton)
             
             
             
             
             async def stand_callback(interaction:discord.Interaction):
                 if interaction.user.name == player:
+                    if 11 in player_card_values:
+                        dealer_soft = True
+                    else:
+                        dealer_soft = False
                     player_total = sum(player_card_values)
                     dealer_total = sum(dealer_card_values)
-                    
+
                     while dealer_total < 18 and dealer_soft == True: #continously go through this while loop until dealer has > 17.
                         card = random.choice(list(DECK.keys()))      #if dealer gets soft 17, must take card.
                         card_value = DECK[card]                         
@@ -242,9 +361,9 @@ class GamesCog(commands.Cog):
                         card_value = DECK[card]
                         dealer_cards.append(card)
                         dealer_total += card_value
-
+                
                     dealer_cards.remove('<:backside:1138692953141948476>')
-                    
+
                     
                     if dealer_total > 21:       #if dealer busts
                         embed_message = discord.Embed(colour=discord.Colour.green(), 
@@ -350,11 +469,13 @@ class GamesCog(commands.Cog):
 
 
             #async def split_callback(interaction:discord.Interaction):
+            yes.callback = yes_callback
+            no.callback = no_callback
             hit.callback = hit_callback
             stand.callback = stand_callback
             doubledown.callback = doubledown_callback
             #split.callback = split_callback
-            await interaction.response.send_message(embed=embed_message, view=view)
+            await interaction.response.send_message(embed=embed_message, view=gamebutton)
 
 
 async def setup(bot):
