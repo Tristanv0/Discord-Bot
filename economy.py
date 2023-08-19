@@ -35,8 +35,7 @@ class Economy:
             return None
 
     #placing bet
-    def update_user_balance(self, guild, username, amount):
-        #amount = amount to subtract by
+    def update_user_balance(self, guild, username, amount):        #amount = amount to subtract by
         self.c.execute('SELECT balance FROM users WHERE guild = ? AND username = ?', (guild, username))
         balance = self.c.fetchone()
 
@@ -48,8 +47,7 @@ class Economy:
             print("User not found in the database.")
 
     #update user balance according to winning or work pay
-    def user_winning(self, guild, username, amount):
-        #amount = amount to add by
+    def user_winning(self, guild, username, amount):         #amount = amount to add by
         self.c.execute('SELECT balance FROM users WHERE guild = ? AND username = ?', (guild, username))
         balance = self.c.fetchone()
         
@@ -67,6 +65,36 @@ class Economy:
             return bank[0]
         else:
             return None
+
+    def deposit(self, guild, username, amount):
+        self.c.execute('SELECT bank FROM users WHERE guild = ? AND username = ?', (guild, username))
+        bank = self.c.fetchone()
+        self.c.execute('SELECT balance FROM users WHERE guild = ? AND username = ?', (guild, username))
+        balance = self.c.fetchone()
+        
+        if bank and balance:
+            new_balance = balance[0] - amount
+            self.c.execute('UPDATE users SET balance = ? WHERE guild = ? AND username = ?', (new_balance, guild, username))
+            new_bank = bank[0] + amount
+            self.c.execute('UPDATE users SET bank = ? WHERE guild = ? AND username = ?', (new_bank, guild, username))                
+            self.conn.commit()
+        else:
+            print("User not found in the database.")
+                
+    def withdraw(self, guild, username, amount):
+        self.c.execute('SELECT bank FROM users WHERE guild = ? AND username = ?', (guild, username))
+        bank = self.c.fetchone()
+        self.c.execute('SELECT balance FROM users WHERE guild = ? AND username = ?', (guild, username))
+        balance = self.c.fetchone()
+        
+        if bank and balance:
+            new_bank = bank[0] - amount
+            self.c.execute('UPDATE users SET bank = ? WHERE guild = ? AND username = ?', (new_bank, guild, username))
+            new_balance = balance[0] + amount
+            self.c.execute('UPDATE users SET balance = ? WHERE guild = ? AND username = ?', (new_balance, guild, username))                
+            self.conn.commit()
+        else:
+            print("User not found in the database.")
 
     def close_connection(self):    
         self.conn.close()
