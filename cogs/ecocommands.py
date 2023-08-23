@@ -133,7 +133,7 @@ class EconomyCog(commands.Cog):
             await interaction.response.send_message(embed=embed, ephemeral=True) 
     
     @withdraw.error
-    async def on_deposit_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
+    async def on_withdraw_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
         if isinstance(error, app_commands.CommandOnCooldown):
             embed = discord.Embed(colour=discord.Colour.red())
             embed.add_field(name='On Cooldown!', value=f'{str(error)}', inline=False)
