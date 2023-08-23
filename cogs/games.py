@@ -1,5 +1,4 @@
 import discord
-import time
 import random
 from discord import app_commands
 from discord.ext import commands
@@ -20,6 +19,11 @@ class GamesCog(commands.Cog):
     async def on_ready(self):
         print("Games cog loaded")
     
+    #def check_game_eligibility(guild_id, player, bet):
+        #going to add a function to check if player is eligible to play a game
+        #based on their balance, the amount they're betting, or if they are not 
+        #in the database yet.   
+        
     @app_commands.command(name="8ball")
     @app_commands.describe(question="Ask me a question")
     async def eight_ball(self, interaction: discord.Interaction, question:str):
@@ -274,7 +278,7 @@ class GamesCog(commands.Cog):
 
         gamebutton.add_item(hit)
         gamebutton.add_item(stand)
-        if self.economy_system.get_user_balance(guild_id, player) >= int(bet):
+        if economy_system.get_user_balance(guild_id, player) >= int(bet):
             gamebutton.add_item(doubledown)
         if player_card_values[0] == player_card_values[1]:
             gamebutton.add_item(split)
@@ -381,7 +385,7 @@ class GamesCog(commands.Cog):
                                     description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total}\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards)}\nDealer's total: {dealer_total}\n\n **Congrats!** The dealer busts!")
                     embed_message.set_footer(text=f"{player} won: ${int(bet)*2}")
                     winning = int(bet)*2
-                    self.economy_system.user_winning(guild_id, player, winning)
+                    economy_system.user_winning(guild_id, player, winning)
                     await interaction.response.edit_message(embed=embed_message, view=None)
 
                 elif player_total > dealer_total:   
@@ -390,7 +394,7 @@ class GamesCog(commands.Cog):
                                     description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total}\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards)}\nDealer's total: {dealer_total}\n\n **Congrats!** You beat the dealer!")
                     embed_message.set_footer(text=f"{player} won: ${int(bet)*2}")
                     winning = int(bet)*2
-                    self.economy_system.user_winning(guild_id, player, winning)
+                    economy_system.user_winning(guild_id, player, winning)
                     await interaction.response.edit_message(embed=embed_message, view=None)
 
                 elif player_total == dealer_total:
@@ -399,7 +403,7 @@ class GamesCog(commands.Cog):
                                     description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total}\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards)}\nDealer's total: {dealer_total}\n\n It's a push.")
                     embed_message.set_footer(text=f"{player} pushed: ${int(bet)}")
                     winning = int(bet)
-                    self.economy_system.user_winning(guild_id, player, winning)
+                    economy_system.user_winning(guild_id, player, winning)
                     await interaction.response.edit_message(embed=embed_message, view=None)
 
                 else:
@@ -414,7 +418,7 @@ class GamesCog(commands.Cog):
 
         async def doubledown_callback(interaction:discord.Interaction):
             if interaction.user.name == player:
-                self.economy_system.update_user_balance(guild_id, player, int(bet)) 
+                economy_system.update_user_balance(guild_id, player, int(bet)) 
                 card = random.choice(list(DECK.keys()))
                 card_value = DECK[card]
                 player_card_values.append(card_value)
@@ -448,7 +452,7 @@ class GamesCog(commands.Cog):
                                     description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total}\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards)}\nDealer's total: {dealer_total}\n\n **Congrats!** The dealer busts!")
                     embed_message.set_footer(text=f"{player} won: ${int(bet)*4}")
                     winning = int(bet)*4
-                    self.economy_system.user_winning(guild_id, player, winning)
+                    economy_system.user_winning(guild_id, player, winning)
                     await interaction.response.edit_message(embed=embed_message, view=None)
 
                 elif player_total > dealer_total:
@@ -457,7 +461,7 @@ class GamesCog(commands.Cog):
                                     description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total}\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards)}\nDealer's total: {dealer_total}\n\n **Congrats!** You beat the dealer!")
                     embed_message.set_footer(text=f"{player} won: ${int(bet)*4}")
                     winning = int(bet)*4
-                    self.economy_system.user_winning(guild_id, player, winning)
+                    economy_system.user_winning(guild_id, player, winning)
                     await interaction.response.edit_message(embed=embed_message, view=None)
 
                 elif player_total == dealer_total:
@@ -466,7 +470,7 @@ class GamesCog(commands.Cog):
                                     description=f"**Your Hand**\n{''.join(card for card in player_cards)}\nYour total: {player_total}\n\n**Dealer's Hand**\n{''.join(card for card in dealer_cards)}\nDealer's total: {dealer_total}\n\n It's a push.")
                     embed_message.set_footer(text=f"{player} pushed: ${int(bet)*2}")
                     winning = int(bet)*2
-                    self.economy_system.user_winning(guild_id, player, winning)
+                    economy_system.user_winning(guild_id, player, winning)
                     await interaction.response.edit_message(embed=embed_message, view=None)
 
                 else:
@@ -486,6 +490,12 @@ class GamesCog(commands.Cog):
         doubledown.callback = doubledown_callback
         #split.callback = split_callback
         await interaction.response.send_message(embed=embed_message, view=gamebutton)
+
+    @app_commands.command(name="Baccarat")
+    @app_commands.describe(bet="Enter your bet amount")
+    async def baccarat(self, interaction:discord.Interaction, bet:str):
+        """Baccarat"""
+        pass
 
 
 async def setup(bot):
