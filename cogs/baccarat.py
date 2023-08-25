@@ -73,8 +73,8 @@ class BaccaratCog(commands.Cog):
         if player_total > 7 or banker_total > 7:
             if player_total == banker_total:
                 embed_message = discord.Embed(colour=discord.Colour.purple(),
-                                        title=f"{user}'s Baccarat Game",
                                         description=f"**Player Hand**\n{''.join(card for card in player_cards)}\nPlayer hand: {player_total}\n\n**Banker Hand**\n{''.join(card for card in banker_cards)}\nBanker hand: {banker_total}\n\n**It's a Tie**")
+                embed_message.set_author(name=f"{user}'s Baccarat Game" , icon_url=interaction.user.display_avatar)
                 if tie != None:
                     economy_system.user_winning(guild_id, user, bet+tie*8)
                     embed_message.set_footer(text=f"{user} won: ${bet+tie*8} (bet total: ${bet})")
@@ -85,8 +85,8 @@ class BaccaratCog(commands.Cog):
                 return
             elif player_total > banker_total:
                 embed_message = discord.Embed(colour=discord.Colour.blue(),
-                                        title=f"{user}'s Baccarat Game",
                                         description=f"**Player Hand**\n{''.join(card for card in player_cards)}\nPlayer hand: {player_total}\n\n**Banker Hand**\n{''.join(card for card in banker_cards)}\nBanker hand: {banker_total}\n\n**Natural win for Player**")
+                embed_message.set_author(name=f"{user}'s Baccarat Game" , icon_url=interaction.user.display_avatar)
                 if player != None:
                     economy_system.user_winning(guild_id, user, player*2)
                     embed_message.set_footer(text=f"{user} won: ${player*2} (bet total: ${bet})")
@@ -96,8 +96,8 @@ class BaccaratCog(commands.Cog):
                 return
             elif banker_total > player_total:
                 embed_message = discord.Embed(colour=discord.Colour.red(),
-                                        title=f"{user}'s Baccarat Game",
                                         description=f"**Player Hand**\n{''.join(card for card in player_cards)}\nPlayer hand: {player_total}\n\n**Banker Hand**\n{''.join(card for card in banker_cards)}\nBanker hand: {banker_total}\n\n**Natural win for Banker**")
+                embed_message.set_author(name=f"{user}'s Baccarat Game" , icon_url=interaction.user.display_avatar)
                 if banker != None:
                     economy_system.user_winning(guild_id, user, banker*1.95)
                     embed_message.set_footer(text=f"{user} won: ${banker*1.95} (bet total: ${bet})")
@@ -168,8 +168,8 @@ class BaccaratCog(commands.Cog):
         banker_total %= 10
         if player_total == banker_total:
             embed_message = discord.Embed(colour=discord.Colour.purple(),
-                                          title=f"{user}'s Baccarat Game",
                                           description=f"**Player Hand**\n{''.join(card for card in player_cards)}\nPlayer hand: {player_total}\n\n**Banker Hand**\n{''.join(card for card in banker_cards)}\nBanker hand: {banker_total}\n\n**It's a tie**")
+            embed_message.set_author(name=f"{user}'s Baccarat Game" , icon_url=interaction.user.display_avatar)
             if tie != None:
                     economy_system.user_winning(guild_id, user, bet+tie*8)
                     embed_message.set_footer(text=f"{user} won: ${bet+tie*8} (bet total: ${bet})")
@@ -181,8 +181,8 @@ class BaccaratCog(commands.Cog):
                 
         if player_total > banker_total:
             embed_message = discord.Embed(colour=discord.Colour.blue(),
-                                          title=f"{user}'s Baccarat Game",
                                           description=f"**Player Hand**\n{''.join(card for card in player_cards)}\nPlayer hand: {player_total}\n\n**Banker Hand**\n{''.join(card for card in banker_cards)}\nBanker hand: {banker_total}\n\n**Player wins**")
+            embed_message.set_author(name=f"{user}'s Baccarat Game" , icon_url=interaction.user.display_avatar)
             if player != None:
                 economy_system.user_winning(guild_id, user, player*2)
                 embed_message.set_footer(text=f"{user} won: ${player*2} (bet total: ${bet})")
@@ -193,8 +193,8 @@ class BaccaratCog(commands.Cog):
             
         if player_total < banker_total:
             embed_message = discord.Embed(colour=discord.Colour.red(),
-                                          title=f"{user}'s Baccarat Game",
                                           description=f"**Player Hand**\n{''.join(card for card in player_cards)}\nPlayer hand: {player_total}\n\n**Banker Hand**\n{''.join(card for card in banker_cards)}\nBanker hand: {banker_total}\n\n**Banker wins**")
+            embed_message.set_author(name=f"{user}'s Baccarat Game" , icon_url=interaction.user.display_avatar)
             if banker != None:
                 economy_system.user_winning(guild_id, user, banker*1.95)
                 embed_message.set_footer(text=f"{user} won: ${banker*1.95} (bet total: ${bet})")
